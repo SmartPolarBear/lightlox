@@ -84,6 +84,16 @@ private:
 
 	bool at_end();
 
+	token string_literal();
+
+	token numeric_literal();
+
+	token identifier();
+
+	token_types identifier_type();
+
+	token_types keyword_match_rest(int start,const std::string&rest,token_types type);
+
 
 	std::string code_{};
 

@@ -5,6 +5,7 @@
 #include <lexer/lexer.h>
 
 #include <utility>
+#include <string>
 
 using namespace std;
 using namespace lightlox;
@@ -37,6 +38,15 @@ token scanner::scan_next_token()
 	start_ = current_;
 
 	char c = advance();
+
+	if (std::isalpha(c) || c == '_')
+	{
+		return identifier();
+	}
+	else if (std::isdigit(c))
+	{
+		return numeric_literal();
+	}
 
 	switch (c)
 	{
@@ -75,6 +85,9 @@ token scanner::scan_next_token()
 	case '>':
 		return make_token(
 			match('=') ? TOKEN_GREATER_EQUAL : TOKEN_GREATER);
+
+	case '"':
+		return string_literal();
 	}
 
 	return token::error(source_information(line_, col_), "Unexpected character.");
@@ -82,7 +95,7 @@ token scanner::scan_next_token()
 
 token scanner::make_token(token_types type)
 {
-	string lexeme{start_, current_ + 1};
+	std::string lexeme{start_, current_ + 1};
 
 	return {source_information(line_, col_),
 			type,
@@ -140,7 +153,7 @@ void scanner::skip_whitespaces()
 
 void scanner::skip_comments()
 {
-	if (peek(1))
+	if (peek(1) == '/')
 	{
 		while (peek() != '\n' && !at_end())
 		{
@@ -161,5 +174,168 @@ char scanner::peek(int len)
 bool scanner::at_end()
 {
 	return current_ == code_.end();
+}
+
+token scanner::string_literal()
+{
+	while (peek() != '"' && !at_end())
+	{
+		if (peek() == '\n')
+		{
+			new_line();
+		}
+		advance();
+	}
+
+	if (at_end())
+	{
+		return token::error(source_information{line_, col_},
+							"Unterminated string_literal.");
+	}
+	advance(); // terminating quote
+
+	std::string content;
+	for (auto i = start_; i != current_;)
+	{
+		if (*i == '\\')
+		{
+			if (i + 1 == current_)
+			{
+				return token::error(source_information{line_, col_},
+									"Unknown escape character");
+			}
+
+			switch (*++i)
+			{
+			case 'n':
+				content.push_back('\n');
+				break;
+			case 'r':
+				content.push_back('\r');
+				break;
+			case 't':
+				content.push_back('\t');
+				break;
+			case '\\':
+				content.push_back('\\');
+				break;
+			default:
+				return token::error(source_information{line_, col_},
+									"Unknown escape character");
+			}
+			i++;
+		}
+		else
+		{
+			content.push_back(*i++);
+		}
+	}
+
+	return token{source_information{line_, col_},
+				 TOKEN_STRING,
+				 content};
+}
+
+token scanner::numeric_literal()
+{
+	while (std::isdigit(peek()) || peek() == 'x' || peek() == 'b')
+		advance();
+
+	// Look for a fractional part.
+	if (peek() == '.' && std::isdigit(peek(1)))
+	{
+		// Consume the ".".
+		advance();
+
+		while (std::isdigit(peek()))
+			advance();
+	}
+
+	return make_token(TOKEN_NUMBER);
+}
+
+token scanner::identifier()
+{
+	while (std::isalpha(peek()) || std::isdigit(peek()) || peek() == '_')
+	{
+		advance();
+	}
+	return make_token(identifier_type());
+}
+
+token_types scanner::identifier_type()
+{
+	switch (*start_)
+	{
+	case 'a':
+		return keyword_match_rest(1, "nd", TOKEN_AND);
+	case 'c':
+		return keyword_match_rest(1, "lass", TOKEN_CLASS);
+	case 'e':
+		return keyword_match_rest(1, "lse", TOKEN_ELSE);
+	case 'f':
+		if (current_ - start_ > 1)
+		{
+			switch (*(start_ + 1))
+			{
+			case 'a':
+				return keyword_match_rest(2, "lse", TOKEN_FALSE);
+			case 'o':
+				return keyword_match_rest(2, "r", TOKEN_FOR);
+			case 'u':
+				return keyword_match_rest(2, "n", TOKEN_FUN);
+			}
+		}
+		break;
+	case 'i':
+		return keyword_match_rest(1, "f", TOKEN_IF);
+	case 'n':
+		return keyword_match_rest(1, "il", TOKEN_NIL);
+	case 'o':
+		return keyword_match_rest(1, "r", TOKEN_OR);
+	case 'p':
+		return keyword_match_rest(1, "rint", TOKEN_PRINT);
+	case 'r':
+		return keyword_match_rest(1, "eturn", TOKEN_RETURN);
+	case 's':
+		return keyword_match_rest(1, "uper", TOKEN_SUPER);
+	case 't':
+		if (current_ - start_ > 1)
+		{
+			switch (*(start_ + 1))
+			{
+			case 'h':
+				return keyword_match_rest(2, "is", TOKEN_THIS);
+			case 'r':
+				return keyword_match_rest(2, "ue", TOKEN_TRUE);
+			}
+		}
+		break;
+	case 'v':
+		return keyword_match_rest(1, "ar", TOKEN_VAR);
+	case 'w':
+		return keyword_match_rest(1, "hile", TOKEN_WHILE);
+	}
+	return TOKEN_IDENTIFIER;
+}
+
+token_types scanner::keyword_match_rest(int start, const string &rest, token_types type)
+{
+	const auto length = rest.length();
+
+	if (current_ - start_ == start + length)
+	{
+		for (auto it1 = start_ + start, it2 = rest.begin();
+			 it1 != current_ && it2 != rest.end(); it1++, it2++)
+		{
+			if (*it1 != *it2)
+			{
+				return TOKEN_IDENTIFIER;
+			}
+		}
+		return type;
+	}
+
+	return TOKEN_IDENTIFIER;
 }
 
