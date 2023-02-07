@@ -15,9 +15,10 @@ public:
 		// volatile int dummy{};
 		return instance;
 	}
+protected:
+	~singleton() = default;
 private:
 	singleton() = default;
-	~singleton() = default;
 	singleton(const singleton &) = delete;
 	singleton &operator=(const singleton &) = delete;
 };

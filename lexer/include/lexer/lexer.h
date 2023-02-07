@@ -8,6 +8,7 @@
 
 #include <string>
 #include <utility>
+#include <format>
 
 namespace lightlox
 {
@@ -72,7 +73,7 @@ private:
 
 	char advance();
 
-	char peek(int len=0);
+	char peek(int len = 0);
 
 	void skip_whitespaces();
 
@@ -92,8 +93,7 @@ private:
 
 	token_types identifier_type();
 
-	token_types keyword_match_rest(int start,const std::string&rest,token_types type);
-
+	token_types keyword_match_rest(int start, const std::string &rest, token_types type);
 
 	std::string code_{};
 
@@ -102,5 +102,25 @@ private:
 
 	int col_{};
 	int line_{};
+};
+}
+
+namespace std
+{
+template<class CharT>
+struct formatter<lightlox::source_information, CharT>
+{
+	template<typename FormatParseContext>
+	auto parse(FormatParseContext &pc)
+	{
+		// parse formatter args like padding, precision if you support it
+		return pc.end(); // returns the iterator to the last parsed character in the format string, in this case we just swallow everything
+	}
+
+	template<typename FormatContext>
+	auto format(lightlox::source_information si, FormatContext &fc)
+	{
+		return std::format_to(fc.out(), "at line {}, column {}", si.line, si.column);
+	}
 };
 }
