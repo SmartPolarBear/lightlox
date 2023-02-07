@@ -1,0 +1,6 @@
+if(ifs==0b01){
+    print a;
+}
+else {
+    print a+1;
+}

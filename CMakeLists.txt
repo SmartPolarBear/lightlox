@@ -8,7 +8,8 @@ add_executable(lightlox main.cpp)
 
 add_subdirectory(libs)
 
-target_link_libraries(lightlox PRIVATE argparse)
+target_link_libraries(lightlox PRIVATE argparse
+        PRIVATE magic_enum)
 
 add_subdirectory(lightlox)
 

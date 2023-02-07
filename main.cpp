@@ -1,8 +1,37 @@
+#include <lightlox/io.h>
+
+#include <lexer/lexer.h>
+
 #include <iostream>
+#include <fstream>
+#include <stdexcept>
+
 #include <argparse/argparse.hpp>
+
+using namespace lightlox;
 
 using namespace std;
 using namespace argparse;
+
+int run_file(const std::string &filename)
+{
+	ifstream file{filename};
+	if (!file.is_open() || file.bad())
+	{
+		throw runtime_error{"Cannot open the file"};
+	}
+
+	string code = slurp(file);
+
+	scanner scanner{code};
+	auto tokens = scanner.scan_all_tokens();
+	for (const auto &t: tokens)
+	{
+		cout << std::format("{:tli}", t) << endl;
+	}
+
+	return 0;
+}
 
 int main(int argc, char **argv)
 {
@@ -10,9 +39,16 @@ int main(int argc, char **argv)
 
 	args.add_argument("file").required();
 
+	args.add_argument("--log");
+
+	int verbosity = 0;
 	args.add_argument("-v", "--verbose")
+		.action([&verbosity](const auto &)
+				{ ++verbosity; })
+		.append()
 		.default_value(false)
-		.implicit_value(true);
+		.implicit_value(true)
+		.nargs(0);
 
 	try
 	{
@@ -25,7 +61,25 @@ int main(int argc, char **argv)
 		std::exit(1);
 	}
 
+	logger::instance().set_verbosity(verbosity);
 
+	auto source = args.get<string>("file");
 
-	return 0;
+	int ret = 0;
+	try
+	{
+		ret = run_file(source);
+	}
+	catch (const std::runtime_error &err)
+	{
+		logger::instance().log(log_type::ERROR, std::format("Compiler internal error: {}", err.what()));
+		return 1;
+	}
+
+	if (auto log = args.present("--log"))
+	{
+		logger::instance().dump(log.value());
+	}
+
+	return ret;
 }

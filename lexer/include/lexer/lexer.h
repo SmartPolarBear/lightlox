@@ -10,6 +10,8 @@
 #include <utility>
 #include <format>
 
+#include <magic_enum.hpp>
+
 namespace lightlox
 {
 
@@ -33,7 +35,7 @@ enum token_types
 	TOKEN_PRINT, TOKEN_RETURN, TOKEN_SUPER, TOKEN_THIS,
 	TOKEN_TRUE, TOKEN_VAR, TOKEN_WHILE,
 
-	TOKEN_ERROR, // TOKEN_EOF
+	TOKEN_ERROR, TOKEN_EOF
 };
 
 struct source_information
@@ -107,20 +109,132 @@ private:
 
 namespace std
 {
-template<class CharT>
-struct formatter<lightlox::source_information, CharT>
+
+template<>
+struct formatter<lightlox::token_types>
 {
-	template<typename FormatParseContext>
-	auto parse(FormatParseContext &pc)
+	constexpr auto parse(std::format_parse_context &ctx)
 	{
-		// parse formatter args like padding, precision if you support it
-		return pc.end(); // returns the iterator to the last parsed character in the format string, in this case we just swallow everything
+		auto pos = ctx.begin();
+		while (pos != ctx.end() && *pos != '}')
+		{
+			if (*pos == 'd' || *pos == 'D')
+			{
+				detailed_ = true;
+			}
+			++pos;
+		}
+
+		return pos;
 	}
 
-	template<typename FormatContext>
-	auto format(lightlox::source_information si, FormatContext &fc)
+	auto format(lightlox::token_types t, std::format_context &fc)
 	{
-		return std::format_to(fc.out(), "at line {}, column {}", si.line, si.column);
+		auto name = magic_enum::enum_name(t);
+		if (detailed_)
+		{
+			return std::format_to(fc.out(), "{}<{}>", name, int(t));
+		}
+		else
+		{
+			return std::format_to(fc.out(), "{}", name);
+		}
 	}
+
+private:
+	bool detailed_{false};
+};
+
+template<>
+struct formatter<lightlox::source_information>
+{
+	constexpr auto parse(std::format_parse_context &ctx)
+	{
+		auto pos = ctx.begin();
+		while (pos != ctx.end() && *pos != '}')
+		{
+			if (*pos == 'd' || *pos == 'D')
+			{
+				detailed_ = true;
+			}
+			++pos;
+		}
+
+		return pos;
+	}
+
+	auto format(lightlox::source_information si, std::format_context &fc)
+	{
+		if (detailed_)
+		{
+			return std::format_to(fc.out(), "at line {}, column {}", si.line, si.column);
+		}
+		else
+		{
+			return std::format_to(fc.out(), "({}, {})", si.line, si.column);
+		}
+	}
+
+private:
+	bool detailed_{false};
+};
+
+template<>
+struct formatter<lightlox::token>
+{
+	constexpr auto parse(std::format_parse_context &ctx)
+	{
+		auto pos = ctx.begin();
+		while (pos != ctx.end() && *pos != '}')
+		{
+			if (*pos == 't' || *pos == 'T')
+			{
+				show_type_ = true;
+			}
+			else if (*pos == 'l' || *pos == 'L')
+			{
+				show_lexem_ = true;
+			}
+			else if (*pos == 'i' || *pos == 'I')
+			{
+				show_info_ = true;
+			}
+			++pos;
+		}
+
+		if (!show_type_ && !show_lexem_ && !show_info_)
+		{
+			show_lexem_ = true;
+		}
+
+		return pos;
+	}
+
+	auto format(lightlox::token tk, std::format_context &ctx)
+	{
+		std::format_to(ctx.out(), "Token< ");
+
+		if (show_type_)
+		{
+			std::format_to(ctx.out(), "Type: {:d}, ", tk.type);
+		}
+
+		if (show_lexem_)
+		{
+			std::format_to(ctx.out(), "Lexeme: \"{}\", ", tk.lexeme);
+		}
+
+		if (show_info_)
+		{
+			std::format_to(ctx.out(), "At: {:s}", tk.src);
+		}
+
+		return std::format_to(ctx.out(), " >");
+	}
+
+private:
+	bool show_type_{false};
+	bool show_lexem_{false};
+	bool show_info_{false};
 };
 }

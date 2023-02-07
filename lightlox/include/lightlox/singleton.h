@@ -10,16 +10,15 @@ template<typename T>
 class singleton
 {
 public:
-	static singleton& getInstance(){
-		static singleton instance;
-		// volatile int dummy{};
-		return instance;
+	static T &instance()
+	{
+		static T _instance;
+		return _instance;
 	}
 protected:
-	~singleton() = default;
-private:
 	singleton() = default;
-	singleton(const singleton &) = delete;
-	singleton &operator=(const singleton &) = delete;
+	~singleton() = default;
+	singleton(const singleton &s) = delete;
+	singleton &operator=(const singleton &s) = delete;
 };
 }

@@ -32,6 +32,8 @@ private:
 	std::vector<std::string> logs_{};
 };
 
+std::string slurp(std::ifstream& in);
+
 }
 
 namespace std

@@ -29,6 +29,7 @@ generator<token> scanner::scan_all_tokens()
 		auto token = scan_next_token();
 		co_yield token;
 	}
+	co_yield make_token(TOKEN_EOF);
 	co_return;
 }
 
@@ -95,7 +96,7 @@ token scanner::scan_next_token()
 
 token scanner::make_token(token_types type)
 {
-	std::string lexeme{start_, current_ + 1};
+	std::string lexeme{start_, current_};
 
 	return {source_information(line_, col_),
 			type,

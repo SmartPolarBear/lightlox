@@ -9,6 +9,7 @@
 #include <format>
 #include <fstream>
 #include <stdexcept>
+#include <sstream>
 
 using namespace std;
 
@@ -43,4 +44,10 @@ void lightlox::logger::dump(const std::string& pathname)
 			throw std::runtime_error("Cannot write log line to file");
 		}
 	}
+}
+std::string lightlox::slurp(ifstream &in)
+{
+	std::ostringstream sstr{};
+	sstr << in.rdbuf();
+	return sstr.str();
 }
