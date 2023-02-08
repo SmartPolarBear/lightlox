@@ -14,4 +14,4 @@ target_link_libraries(lightlox PRIVATE argparse
 add_subdirectory(lightlox)
 
 add_subdirectory(lexer)
-
+add_subdirectory(parser)

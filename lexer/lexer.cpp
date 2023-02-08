@@ -98,6 +98,11 @@ token scanner::make_token(token_types type)
 {
 	std::string lexeme{start_, current_};
 
+	if (type == TOKEN_EOF)
+	{
+		lexeme = "";
+	}
+
 	return {source_information(line_, col_),
 			type,
 			lexeme};

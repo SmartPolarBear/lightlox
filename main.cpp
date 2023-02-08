@@ -1,3 +1,4 @@
+#include <lightlox/lightlox.h>
 #include <lightlox/io.h>
 
 #include <lexer/lexer.h>
@@ -5,6 +6,7 @@
 #include <iostream>
 #include <fstream>
 #include <stdexcept>
+#include <sstream>
 
 #include <argparse/argparse.hpp>
 
@@ -25,10 +27,18 @@ int run_file(const std::string &filename)
 
 	scanner scanner{code};
 	auto tokens = scanner.scan_all_tokens();
-	for (const auto &t: tokens)
+
+	DEBUG_ONLY
 	{
-		cout << std::format("{:tli}", t) << endl;
+		stringstream token_ss{};
+		for (const auto &t: tokens)
+		{
+			token_ss << std::format("{:tli}", t) << endl;
+		}
+		logger::instance().log(log_type::DEBUG, token_ss.str());
 	}
+
+
 
 	return 0;
 }
