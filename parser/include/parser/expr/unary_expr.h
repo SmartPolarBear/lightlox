@@ -2,7 +2,24 @@
 // Created by bear on 2/8/2023.
 //
 
-#ifndef LIGHTLOX_PARSER_INCLUDE_PARSER_EXPR_UNARY_EXPR_H
-#define LIGHTLOX_PARSER_INCLUDE_PARSER_EXPR_UNARY_EXPR_H
+#pragma once
 
-#endif //LIGHTLOX_PARSER_INCLUDE_PARSER_EXPR_UNARY_EXPR_H
+#include <parser/annotation.h>
+#include <parser/expression.h>
+
+#include <lexer/lexer.h>
+
+namespace lightlox
+{
+struct unary_expression : public annotatable
+{
+	unary_expression(token o, expression_owned c) :
+		annotatable(),
+		op(std::move(o)),
+		child(std::move(c))
+	{}
+
+	token op;
+	expression_owned child;
+};
+}
