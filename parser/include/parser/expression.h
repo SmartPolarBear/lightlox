@@ -9,8 +9,8 @@
 
 namespace lightlox
 {
-using expression = std::variant< std::unique_ptr<class binary_expression>>;
+using expression = std::variant<std::unique_ptr<class binary_expression>,
+								std::unique_ptr<class unary_expression>,
+								std::unique_ptr<class literal_expression>>;
 
-using expression_owned = std::unique_ptr<expression>;
-using expression_shared = std::shared_ptr<expression>;
 }

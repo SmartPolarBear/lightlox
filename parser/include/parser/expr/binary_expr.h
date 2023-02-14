@@ -16,15 +16,15 @@ namespace lightlox
 {
 struct binary_expression : public annotatable
 {
-	binary_expression(expression_owned l, token o, expression_owned r) :
+	binary_expression(expression l, token o, expression r) :
 		annotatable(),
 		left(std::move(l)),
 		op(std::move(o)),
 		right(std::move(r))
 	{}
 
-	expression_owned left;
+	expression left;
 	token op;
-	expression_owned right;
+	expression right;
 };
 }
