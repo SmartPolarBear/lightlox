@@ -57,30 +57,16 @@ private:
 		{TOKEN_PLUS, parse_rule{}},
 	};
 
+	void advance();
+
+	void error_at_current(std::string_view msg);
+	void error(std::string_view msg);
+	static void error_at(const token &tk, std::string_view msg);
+
 	generator<token> tokens_;
+
+	generator<token>::iterator current_;
+	generator<token>::iterator previous_;
 };
 
-struct prefix_expression : public annotatable
-{
-	prefix_expression(token o, expression c) :
-		annotatable(),
-		op(std::move(o)),
-		child(std::move(c))
-	{}
-
-	token op;
-	expression child;
-};
-
-struct postfix_expression : public annotatable
-{
-	postfix_expression(expression c, token o) :
-		annotatable(),
-		child(std::move(c)),
-		op(std::move(o))
-	{}
-
-	expression child;
-	token op;
-};
 }

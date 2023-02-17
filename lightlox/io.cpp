@@ -18,7 +18,14 @@ void lightlox::logger::log(lightlox::log_type type, std::string msg)
 	string full = std::format("{}: {}", type, msg);
 	if (static_cast<int>(type) <= verbosity_)
 	{
-		cout << full << endl;
+		if (type <= log_type::WARNING)
+		{
+			cerr << full << endl;
+		}
+		else
+		{
+			cout << full << endl;
+		}
 	}
 	logs_.push_back(full);
 }
@@ -28,7 +35,7 @@ void lightlox::logger::set_verbosity(int verb)
 	verbosity_ = verb;
 }
 
-void lightlox::logger::dump(const std::string& pathname)
+void lightlox::logger::dump(const std::string &pathname)
 {
 	ofstream file{pathname};
 	if (!file.is_open() || file.bad())
@@ -45,6 +52,7 @@ void lightlox::logger::dump(const std::string& pathname)
 		}
 	}
 }
+
 std::string lightlox::slurp(ifstream &in)
 {
 	std::ostringstream sstr{};
