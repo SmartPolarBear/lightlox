@@ -49,15 +49,17 @@ struct binary_expression : public annotatable
 
 struct ternary_expression : public annotatable
 {
-	ternary_expression(expression c, expression t, expression f) :
+	ternary_expression(expression c, expression t, token col, expression f) :
 		annotatable(),
 		condition(std::move(c)),
 		true_branch(std::move(t)),
+		colon(std::move(col)),
 		false_branch(std::move(f))
 	{}
 
 	expression condition;
 	expression true_branch;
+	token colon;
 	expression false_branch;
 };
 

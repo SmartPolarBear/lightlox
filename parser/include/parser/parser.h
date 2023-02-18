@@ -66,9 +66,19 @@ private:
 	token_iterator advance();
 	token_iterator consume(token_type type,std::string_view msg);
 
+	template<typename ...TTokenTypes>
+	bool match(TTokenTypes... types)
+	{
+		return (match(types) || ...);
+	}
+
+	bool match(token_type type);
+
+
 	void error_at_current(std::string_view msg);
 	void error(std::string_view msg);
 	static void error_at(const token &tk, std::string_view msg);
+
 	void synchronize();
 
 	scanner tokens_;

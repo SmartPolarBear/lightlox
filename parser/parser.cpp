@@ -89,6 +89,16 @@ parser::token_iterator parser::consume(token_type type, std::string_view msg)
 	UNREACHABLE;
 }
 
+bool parser::match(token_type type)
+{
+	if (current_->type == type)
+	{
+		advance();
+		return true;
+	}
+	return false;
+}
+
 void lightlox::parser::error_at_current(std::string_view msg)
 {
 	error_at(*current_, msg);
@@ -137,21 +147,37 @@ expression parser::grouping()
 expression parser::unary()
 {
 	auto op = *previous_;
-	auto rhs = expr();
+	auto rhs = hierarchical_exprs(PREC_PREFIX);
 	return std::make_unique<prefix_expression>(op, std::move(rhs));
 }
 
 expression parser::binary(expression &&left)
 {
-	return lightlox::expression();
+	auto op = *previous_;
+	// handle postfix here if needed
+//	if (op.type == TOKEN_PLUS_PLUS || op.type == TOKEN_MINUS_MINUS)
+//	{
+//		return std::make_unique<postfix_expression>(std::move(left), op);
+//	}
+
+	auto rhs_prec = static_cast<precedence>(rules_[op.type].precedence + 1);
+	auto rhs = hierarchical_exprs(rhs_prec);
+	return std::make_unique<binary_expression>(std::move(left), op, std::move(rhs));
 }
 
 lightlox::expression lightlox::parser::primary()
 {
-	return lightlox::expression();
+	if (match(TOKEN_FALSE))
+	{
+		return std::make_unique<literal_expression>(*previous_);
+	}
 }
 
 expression parser::ternary(expression &&prefix)
 {
-	return lightlox::expression();
+	auto then = hierarchical_exprs(PREC_TERNARY);
+	auto op = consume(TOKEN_COLON, "Expected ':' after then expression.");
+	auto els = hierarchical_exprs(PREC_TERNARY);
+	return std::make_unique<ternary_expression>(std::move(prefix), std::move(then), *op, std::move(els));
 }
+
