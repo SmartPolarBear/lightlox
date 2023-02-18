@@ -15,7 +15,7 @@
 namespace lightlox
 {
 
-enum token_types
+enum token_type
 {
 	// Single-character tokens.
 	TOKEN_LEFT_PAREN, TOKEN_RIGHT_PAREN,
@@ -51,10 +51,10 @@ struct source_information
 struct token
 {
 	source_information src;
-	token_types type;
+	token_type type;
 	std::string lexeme;
 
-	token(source_information _src, token_types _type, std::string _lexeme)
+	token(source_information _src, token_type _type, std::string _lexeme)
 		: src(_src), type(_type), lexeme(std::move(_lexeme))
 	{
 	}
@@ -69,7 +69,7 @@ public:
 
 	generator<token> scan_all_tokens();
 private:
-	token make_token(token_types type);
+	token make_token(token_type type);
 
 	token scan_next_token();
 
@@ -93,9 +93,9 @@ private:
 
 	token identifier();
 
-	token_types identifier_type();
+	token_type identifier_type();
 
-	token_types keyword_match_rest(int start, const std::string &rest, token_types type);
+	token_type keyword_match_rest(int start, const std::string &rest, token_type type);
 
 	std::string code_{};
 
@@ -111,7 +111,7 @@ namespace std
 {
 
 template<>
-struct formatter<lightlox::token_types>
+struct formatter<lightlox::token_type>
 {
 	constexpr auto parse(std::format_parse_context &ctx)
 	{
@@ -128,7 +128,7 @@ struct formatter<lightlox::token_types>
 		return pos;
 	}
 
-	auto format(lightlox::token_types t, std::format_context &fc)
+	auto format(lightlox::token_type t, std::format_context &fc)
 	{
 		auto name = magic_enum::enum_name(t);
 		if (detailed_)

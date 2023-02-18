@@ -94,7 +94,7 @@ token scanner::scan_next_token()
 	return token::error(source_information(line_, col_), "Unexpected character.");
 }
 
-token scanner::make_token(token_types type)
+token scanner::make_token(token_type type)
 {
 	std::string lexeme{start_, current_};
 
@@ -269,7 +269,7 @@ token scanner::identifier()
 	return make_token(identifier_type());
 }
 
-token_types scanner::identifier_type()
+token_type scanner::identifier_type()
 {
 	switch (*start_)
 	{
@@ -325,7 +325,7 @@ token_types scanner::identifier_type()
 	return TOKEN_IDENTIFIER;
 }
 
-token_types scanner::keyword_match_rest(int start, const string &rest, token_types type)
+token_type scanner::keyword_match_rest(int start, const string &rest, token_type type)
 {
 	const auto length = rest.length();
 

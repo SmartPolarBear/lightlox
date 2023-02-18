@@ -7,6 +7,13 @@
 namespace lightlox
 {
 static inline constexpr bool DEBUG = true;
+
 }
 
 #define DEBUG_ONLY if constexpr (DEBUG)
+
+#ifndef _MSC_VER // not in MSVC
+#define UNREACHABLE  __builtin_unreachable()
+#else
+#define UNREACHABLE  __assume(0)
+#endif

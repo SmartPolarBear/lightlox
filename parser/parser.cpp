@@ -3,6 +3,7 @@
 //
 
 #include <lightlox/io.h>
+#include <lightlox/lightlox.h>
 
 #include <parser/parser.h>
 #include <parser/expression.h>
@@ -26,6 +27,7 @@ lightlox::expression lightlox::parser::expr()
 			synchronize();
 		}
 	}
+	return expression_placeholder;
 }
 
 lightlox::expression lightlox::parser::hierarchical_exprs(precedence prec)
@@ -56,11 +58,6 @@ lightlox::expression lightlox::parser::hierarchical_exprs(precedence prec)
 	return expr;
 }
 
-lightlox::expression lightlox::parser::primary()
-{
-	return lightlox::expression();
-}
-
 parser::token_iterator lightlox::parser::advance()
 {
 	previous_ = current_;
@@ -79,6 +76,17 @@ parser::token_iterator lightlox::parser::advance()
 		error_at_current(current_->lexeme);
 	}
 	return previous_;
+}
+
+parser::token_iterator parser::consume(token_type type, std::string_view msg)
+{
+	if (current_->type == type)
+	{
+		return advance();
+	}
+
+	error_at_current(msg);
+	UNREACHABLE;
 }
 
 void lightlox::parser::error_at_current(std::string_view msg)
@@ -110,10 +118,40 @@ void lightlox::parser::error_at(const lightlox::token &tk, std::string_view msg)
 
 	full += format(":\n {}", msg);
 	logger::instance().log(log_type::ERROR, full);
+
 	throw std::runtime_error(full);
 }
 
 void parser::synchronize()
 {
 
+}
+
+expression parser::grouping()
+{
+	auto child = expr();
+	consume(TOKEN_RIGHT_PAREN, "Expected ')' after expression.");
+	return std::make_unique<grouping_expression>(std::move(child));
+}
+
+expression parser::unary()
+{
+	auto op = *previous_;
+	auto rhs = expr();
+	return std::make_unique<prefix_expression>(op, std::move(rhs));
+}
+
+expression parser::binary(expression &&left)
+{
+	return lightlox::expression();
+}
+
+lightlox::expression lightlox::parser::primary()
+{
+	return lightlox::expression();
+}
+
+expression parser::ternary(expression &&prefix)
+{
+	return lightlox::expression();
 }

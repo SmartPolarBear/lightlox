@@ -53,13 +53,18 @@ private:
 
 	expression expr();
 	expression hierarchical_exprs(precedence prec);
+	expression grouping();
+	expression unary();
+	expression binary(expression&& left);
+	expression ternary(expression&& prefix);
 	expression primary();
 
-	std::unordered_map<token_types, parse_rule> rules_ = {
+	std::unordered_map<token_type, parse_rule> rules_ = {
 		{TOKEN_PLUS, parse_rule{}},
 	};
 
 	token_iterator advance();
+	token_iterator consume(token_type type,std::string_view msg);
 
 	void error_at_current(std::string_view msg);
 	void error(std::string_view msg);

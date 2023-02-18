@@ -22,10 +22,15 @@ struct expression_placeholder_tag
 
 static inline constexpr expression_placeholder_tag expression_placeholder{};
 
-using expression = std::variant<std::unique_ptr<class binary_expression>,
-								std::unique_ptr<class prefix_expression>,
-								std::unique_ptr<class postfix_expression>,
-								std::unique_ptr<class literal_expression>,
+template<typename T>
+using ast_ptr = std::unique_ptr<T>;
+
+using expression = std::variant<ast_ptr<class binary_expression>,
+								ast_ptr<class ternary_expression>,
+								ast_ptr<class prefix_expression>,
+								ast_ptr<class postfix_expression>,
+								ast_ptr<class literal_expression>,
+								ast_ptr<class grouping_expression>,
 								expression_placeholder_tag>;
 
 struct binary_expression : public annotatable
@@ -40,6 +45,20 @@ struct binary_expression : public annotatable
 	expression left;
 	token op;
 	expression right;
+};
+
+struct ternary_expression : public annotatable
+{
+	ternary_expression(expression c, expression t, expression f) :
+		annotatable(),
+		condition(std::move(c)),
+		true_branch(std::move(t)),
+		false_branch(std::move(f))
+	{}
+
+	expression condition;
+	expression true_branch;
+	expression false_branch;
 };
 
 struct literal_expression : public annotatable
@@ -74,5 +93,15 @@ struct postfix_expression : public annotatable
 
 	expression child;
 	token op;
+};
+
+struct grouping_expression : public annotatable
+{
+	explicit grouping_expression(expression c) :
+		annotatable(),
+		child(std::move(c))
+	{}
+
+	expression child;
 };
 }
