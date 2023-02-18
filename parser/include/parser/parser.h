@@ -17,6 +17,9 @@ namespace lightlox
 class parser
 {
 public:
+	using scanner = generator<token>;
+	using token_iterator = generator<token>::iterator;
+
 private:
 	enum precedence
 	{
@@ -38,8 +41,7 @@ private:
 	};
 
 	using prefix_parse_fn = std::function<expression()>;
-	using infix_parse_fn = std::function<expression(expression)>;
-	using postfix_parse_fn = std::function<expression(expression)>;
+	using infix_parse_fn = std::function<expression(expression&&)>;
 
 	struct parse_rule
 	{
@@ -50,23 +52,24 @@ private:
 	};
 
 	expression expr();
-	expression hierarchical_exprs();
+	expression hierarchical_exprs(precedence prec);
 	expression primary();
 
 	std::unordered_map<token_types, parse_rule> rules_ = {
 		{TOKEN_PLUS, parse_rule{}},
 	};
 
-	void advance();
+	token_iterator advance();
 
 	void error_at_current(std::string_view msg);
 	void error(std::string_view msg);
 	static void error_at(const token &tk, std::string_view msg);
+	void synchronize();
 
-	generator<token> tokens_;
+	scanner tokens_;
 
-	generator<token>::iterator current_;
-	generator<token>::iterator previous_;
+	token_iterator current_;
+	token_iterator previous_;
 };
 
 }

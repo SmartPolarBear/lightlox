@@ -15,10 +15,18 @@
 
 namespace lightlox
 {
+
+struct expression_placeholder_tag
+{
+};
+
+static inline constexpr expression_placeholder_tag expression_placeholder{};
+
 using expression = std::variant<std::unique_ptr<class binary_expression>,
 								std::unique_ptr<class prefix_expression>,
 								std::unique_ptr<class postfix_expression>,
-								std::unique_ptr<class literal_expression>>;
+								std::unique_ptr<class literal_expression>,
+								expression_placeholder_tag>;
 
 struct binary_expression : public annotatable
 {

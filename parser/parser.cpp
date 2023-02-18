@@ -15,12 +15,45 @@ using namespace lightlox;
 
 lightlox::expression lightlox::parser::expr()
 {
-	return lightlox::expression();
+	while (current_ != tokens_.end())
+	{
+		try
+		{
+			return hierarchical_exprs(PREC_TERNARY);
+		}
+		catch (const std::runtime_error &e)
+		{
+			synchronize();
+		}
+	}
 }
 
-lightlox::expression lightlox::parser::hierarchical_exprs()
+lightlox::expression lightlox::parser::hierarchical_exprs(precedence prec)
 {
-	return lightlox::expression();
+	auto tk = advance();
+	auto prefix = rules_[tk->type].prefix;
+	if (!prefix)
+	{
+		error("Expected expression.");
+		return expression_placeholder;
+	}
+
+	auto expr = prefix();
+
+	while (prec <= rules_[current_->type].precedence)
+	{
+		tk = advance();
+		auto infix = rules_[tk->type].infix;
+		if (!infix)
+		{
+			error("Expected expression.");
+			return expression_placeholder;
+		}
+
+		expr = infix(std::move(expr));
+	}
+
+	return expr;
 }
 
 lightlox::expression lightlox::parser::primary()
@@ -28,12 +61,12 @@ lightlox::expression lightlox::parser::primary()
 	return lightlox::expression();
 }
 
-void lightlox::parser::advance()
+parser::token_iterator lightlox::parser::advance()
 {
 	previous_ = current_;
 	if (current_ == tokens_.end())
 	{
-		return;
+		return previous_;
 	}
 	for (;;)
 	{
@@ -45,6 +78,7 @@ void lightlox::parser::advance()
 
 		error_at_current(current_->lexeme);
 	}
+	return previous_;
 }
 
 void lightlox::parser::error_at_current(std::string_view msg)
@@ -77,4 +111,9 @@ void lightlox::parser::error_at(const lightlox::token &tk, std::string_view msg)
 	full += format(":\n {}", msg);
 	logger::instance().log(log_type::ERROR, full);
 	throw std::runtime_error(full);
+}
+
+void parser::synchronize()
+{
+
 }
