@@ -2,6 +2,7 @@
 #include <lightlox/io.h>
 
 #include <lexer/lexer.h>
+#include <parser/parser.h>
 
 #include <iostream>
 #include <fstream>
@@ -26,10 +27,10 @@ int run_file(const std::string &filename)
 	string code = slurp(file);
 
 	scanner scanner{code};
-	auto tokens = scanner.scan_all_tokens();
 
 	DEBUG_ONLY
 	{
+		auto tokens = scanner.scan_all_tokens();
 		stringstream token_ss{};
 		for (const auto &t: tokens)
 		{
@@ -38,7 +39,13 @@ int run_file(const std::string &filename)
 		logger::instance().log(log_type::DEBUG, token_ss.str());
 	}
 
+	parser psr{scanner.scan_all_tokens()};
 
+	DEBUG_ONLY
+	{
+		auto stmts = psr.parse();
+
+	}
 
 	return 0;
 }

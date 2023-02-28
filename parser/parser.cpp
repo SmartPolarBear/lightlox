@@ -40,7 +40,7 @@ lightlox::expression lightlox::parser::hierarchical_exprs(precedence prec)
 		return expression_placeholder;
 	}
 
-	auto expr = prefix();
+	auto expr = (this->*prefix)();
 
 	while (prec <= rules_[current_->type].precedence)
 	{
@@ -52,7 +52,7 @@ lightlox::expression lightlox::parser::hierarchical_exprs(precedence prec)
 			return expression_placeholder;
 		}
 
-		expr = infix(std::move(expr));
+		expr = (this->*infix)(std::move(expr));
 	}
 
 	return expr;
@@ -86,7 +86,6 @@ parser::token_iterator parser::consume(token_type type, std::string_view msg)
 	}
 
 	error_at_current(msg);
-	UNREACHABLE;
 }
 
 bool parser::match(token_type type)
@@ -130,11 +129,17 @@ void lightlox::parser::error_at(const lightlox::token &tk, std::string_view msg)
 	logger::instance().log(log_type::ERROR, full);
 
 	throw std::runtime_error(full);
+	UNREACHABLE;
 }
 
 void parser::synchronize()
 {
 
+}
+
+generator<statement> parser::parse()
+{
+	return lightlox::generator<statement>();
 }
 
 expression parser::grouping()
@@ -155,10 +160,10 @@ expression parser::binary(expression &&left)
 {
 	auto op = *previous_;
 	// handle postfix here if needed
-//	if (op.type == TOKEN_PLUS_PLUS || op.type == TOKEN_MINUS_MINUS)
-//	{
-//		return std::make_unique<postfix_expression>(std::move(left), op);
-//	}
+	if (op.type == TOKEN_PLUS_PLUS || op.type == TOKEN_MINUS_MINUS)
+	{
+		return std::make_unique<postfix_expression>(std::move(left), op);
+	}
 
 	auto rhs_prec = static_cast<precedence>(rules_[op.type].precedence + 1);
 	auto rhs = hierarchical_exprs(rhs_prec);
@@ -171,6 +176,8 @@ lightlox::expression lightlox::parser::primary()
 	{
 		return std::make_unique<literal_expression>(*previous_);
 	}
+
+	error_at_current("Expected expression.");
 }
 
 expression parser::ternary(expression &&prefix)
@@ -180,4 +187,19 @@ expression parser::ternary(expression &&prefix)
 	auto els = hierarchical_exprs(PREC_TERNARY);
 	return std::make_unique<ternary_expression>(std::move(prefix), std::move(then), *op, std::move(els));
 }
+
+expression parser::literal()
+{
+	switch (previous_->type)
+	{
+	case TOKEN_FALSE:
+	case TOKEN_TRUE:
+	case TOKEN_NIL:
+		return std::make_unique<literal_expression>(*previous_);
+	default:
+		error_at_current("Invalid literal type.");
+		UNREACHABLE;
+	}
+}
+
 

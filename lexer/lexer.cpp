@@ -59,6 +59,8 @@ token scanner::scan_next_token()
 		return make_token(TOKEN_LEFT_BRACE);
 	case '}':
 		return make_token(TOKEN_RIGHT_BRACE);
+	case ':':
+		return make_token(TOKEN_SEMICOLON);
 	case ';':
 		return make_token(TOKEN_SEMICOLON);
 	case ',':
@@ -66,14 +68,16 @@ token scanner::scan_next_token()
 	case '.':
 		return make_token(TOKEN_DOT);
 	case '-':
-		return make_token(TOKEN_MINUS);
+		return make_token(
+			match('-') ? TOKEN_MINUS_MINUS : TOKEN_MINUS);
 	case '+':
-		return make_token(TOKEN_PLUS);
+		return make_token(
+			match('+') ? TOKEN_PLUS_PLUS : TOKEN_PLUS);
 	case '/':
 		return make_token(TOKEN_SLASH);
 	case '*':
-		return make_token(TOKEN_STAR);
-
+		return make_token(
+			match('*') ? TOKEN_STAR_STAR : TOKEN_STAR);
 	case '!':
 		return make_token(
 			match('=') ? TOKEN_BANG_EQUAL : TOKEN_BANG);
